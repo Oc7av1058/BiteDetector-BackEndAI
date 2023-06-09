@@ -1,0 +1,20 @@
+{
+  "name": "bitedetector-backendai",
+  "version": "1.0.0",
+  "description": "Esta es la parte de tensorflow del proyecto",
+  "main": "tensorflowProbando.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "clang-format": "^1.8.0",
+    "http-server": "^14.1.1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "yarn": "^1.22.19"
+  }
+}
