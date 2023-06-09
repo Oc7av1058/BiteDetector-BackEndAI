@@ -67,4 +67,22 @@ let imagenes=[{imagen:"img_Bichos/bee/bee-0.jpg", label:"abeja" },
 imagenes.map((picadura)=>{
 picadura.imagen=tf.browser.fromPixels(picadura.imagen).resizeNearestNeighbor([inputWidth, inputHeight]).toFloat().div(255.0).expandDims;
 });
+//todo lo que viene a partir de abajo probablemente haya que cambiarlo o agregar muchas cosas
+const model = await tf.loadLayersModel('tensorflowProbando.js');
+model.compile({ optimizer: 'adam', loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+
+const batchSize = 32;
+const numEpochs = 10;
+
+const dataset = tf.data.generator(function* () {
+  // Iterate through your training data
+  imagenes.map((picadura)=>{
+    // Load and preprocess your image
+   // const imgTensor = ...; // Load and preprocess your image tensor
+    
+    // Yield the image tensor and its label
+   // yield [picadura.imagen, picadura.label];
+  });
+}).batch(batchSize).shuffle(bufferSize);
+
 export default {imagenes}
