@@ -75,14 +75,15 @@ const batchSize = 32;
 const numEpochs = 10;
 
 const dataset = tf.data.generator(function* () {
+  let numPicaduras=imagenes.length;
   // Iterate through your training data
-  imagenes.map((picadura)=>{
+  for (let i = 0; i < numPicaduras-1; i++) {
     // Load and preprocess your image
-   // const imgTensor = ...; // Load and preprocess your image tensor
+    //const imgTensor = ...; // Load and preprocess your image tensor
     
     // Yield the image tensor and its label
-   // yield [picadura.imagen, picadura.label];
-  });
+    yield [imagenes[i].imagen, imagenes[i].label];
+  }
 }).batch(batchSize).shuffle(bufferSize);
 
 export default {imagenes}
