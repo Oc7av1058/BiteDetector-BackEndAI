@@ -1,9 +1,11 @@
-import * as tf from '@tensorflow/tfjs'
-import * as fs from 'fs';
-let inputHeight=50;
-let inputWidth=50;
-let imagenes=[{imagen:"img_Bichos/bee/bee-0.jpg", label:"abeja" , tensor: null},
-{imagen:"img_Bichos/bee/bee-1.jpg", label:"abeja" , tensor: null},
+import * as tf from '@tensorflow/tfjs';
+import sharp from 'sharp';
+import fs from 'fs';
+import Jimp from 'jimp';
+let inputHeight = 50;
+let inputWidth = 50;
+let imagenes = [{ imagen: "img_Bichos/bee/bee-0.jpg", label: "abeja", tensor: null },
+/*{imagen:"img_Bichos/bee/bee-1.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/bee/bee-2.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/bee/bee-3.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/bee/bee-4.jpg", label:"abeja" , tensor: null},
@@ -63,44 +65,120 @@ let imagenes=[{imagen:"img_Bichos/bee/bee-0.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/none/none-17.jpg", label:"nada", tensor: null},
 {imagen:"img_Bichos/none/none-18.jpg", label:"nada", tensor: null},
 {imagen:"img_Bichos/none/none-19.jpg", label:"nada", tensor: null}
-]
-imagenes.map((picadura)=>{
-  let buf = fs.readFileSync(picadura.imagen);
-  picadura.tensor = tf.node.decodeImage(buf);
+*/]
+
+async function loadAndPreprocessImage(imageData) {
+  const { imagen, label, tensor } = imageData;
+
+  // Load the image using the sharp package
+  const imageBuffer = fs.readFileSync(imagen);
+  const image = sharp(imageBuffer);
+
+  // Get the image metadata (width, height)
+  const metadata = await image.metadata();
+  const originalWidth = metadata.width;
+  const originalHeight = metadata.height;
+
+  // Calculate the aspect ratio and determine the maximum width or height
+  const aspectRatio = originalWidth / originalHeight;
+  const maxWidth = inputWidth;
+  const maxHeight = inputHeight;
+  let targetWidth = maxWidth;
+  let targetHeight = Math.round(targetWidth / aspectRatio);
+
+  // If the calculated height exceeds the maxHeight, use maxHeight as the target height
+  if (targetHeight > maxHeight) {
+    targetHeight = maxHeight;
+    targetWidth = Math.round(targetHeight * aspectRatio);
+  }
+
+  // Resize the image while maintaining the aspect ratio
+  const resizedImageBuffer = await image
+    .resize(targetWidth, targetHeight)
+    .toBuffer();
+
+  // Create a new image buffer with the maximum width and height
+  const paddedImageBuffer = Buffer.alloc(inputWidth * inputHeight * 3);
+
+  // Calculate the padding offsets to center the resized image
+  const offsetX = Math.floor((inputWidth - targetWidth) / 2);
+  const offsetY = Math.floor((inputHeight - targetHeight) / 2);
+
+  // Copy the resized image buffer into the padded image buffer at the correct offsets
+  resizedImageBuffer.copy(
+    paddedImageBuffer,
+    (offsetY * inputWidth + offsetX) * 3,
+    0,
+    resizedImageBuffer.length
+  );
+
+  // Convert the padded image buffer to a tensor
+  const imageArray = Array.from(paddedImageBuffer);
+  console.log(imageArray.length);
+  const normalizedArray = imageArray.map((value) => value / 255.0); // Normalize the values
+  const imageTensor = tf.tensor(normalizedArray, [inputHeight, inputWidth, 3], 'float32');
+  const normalizedTensor = imageTensor.div(255.0);
+  console.log(normalizedTensor);
+  return { imagen, label, tensor: normalizedTensor };
+}
+
+// Create a directory to save the resized images
+const outputDir = 'resized_images';
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir);
+}
+
+// Preprocess all images using Promise.all
+const preprocessPromises = imagenes.map(loadAndPreprocessImage);
+const preprocessedImages = await Promise.all(preprocessPromises);
+
+preprocessedImages.forEach(async (preprocessedImage, index) => {
+  imagenes[index].tensor = preprocessedImage.tensor;
+
+  // Convert the tensor to a pixel array
+  const pixels = preprocessedImage.tensor.dataSync();
+
+  // Create a new Jimp image with the pixel array
+  const image = new Jimp(inputWidth, inputHeight);
+  image.bitmap.data = Buffer.from(pixels);
+  image.bitmap.width = inputWidth;
+  image.bitmap.height = inputHeight;
+
+  // Save the resized image
+  const outputFilePath = `${outputDir}/resized_${index}.jpg`;
+  await image.writeAsync(outputFilePath);
+
+  // Print the file path of the resized image
+  console.log(`Resized image saved: ${outputFilePath}`);
 });
 
 
 
 
 
-imagenes.map((picadura)=>{
-  console.log("picadura");
-  console.log(picadura);
-  let pixeles = tf.browser.fromPixels(picadura.imagen);
-  console.log("pixeles");
-  console.log(pixeles);
-  let imgModificada = pixeles.resizeNearestNeighbor([inputWidth, inputHeight]).toFloat().div(255.0).expandDims;
-  picadura.tensor=imgModificada;
-});
-//todo lo que viene a partir de abajo probablemente haya que cambiarlo o agregar muchas cosas
-const model = await tf.loadLayersModel('tensorflowProbando.js');
+/*// Load and compile the model
+const model = await tf.loadLayersModel('listaImagenes.js');
 model.compile({ optimizer: 'adam', loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
 
+// Training parameters
 const batchSize = 32;
 const numEpochs = 10;
 
+// Create a dataset from the preprocessed images
 const dataset = tf.data.generator(function* () {
-  let numPicaduras=imagenes.length;
+  const numPicaduras = imagenes.length;
   // Iterate through your training data
-  for (let i = 0; i < numPicaduras-1; i++) {
+  for (let i = 0; i < numPicaduras - 1; i++) {
     // Load and preprocess your image
-    //const imgTensor = ...; // Load and preprocess your image tensor
-    
+    const imgTensor = imagenes[i].tensor;
+
     // Yield the image tensor and its label
-    yield [imagenes[i].imagen, imagenes[i].label];
+    yield [imgTensor, imagenes[i].label];
   }
 }).batch(batchSize).shuffle(bufferSize);
 
-var cosa=document.querySelector("#mostrar");
-cosa.innerHTML+=`<image src=${imagenes[5].imagen}>`
-export default {imagenes}
+// Train the model
+await model.fitDataset(dataset, {
+  epochs: numEpochs,
+  callbacks: tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 3 }),
+});*/
