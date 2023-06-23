@@ -5,7 +5,7 @@ import Jimp from 'jimp';
 let inputHeight = 50;
 let inputWidth = 50;
 let imagenes = [{ imagen: "img_Bichos/bee/bee-0.jpg", label: "abeja", tensor: null },
-/*{imagen:"img_Bichos/bee/bee-1.jpg", label:"abeja" , tensor: null},
+{imagen:"img_Bichos/bee/bee-1.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/bee/bee-2.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/bee/bee-3.jpg", label:"abeja" , tensor: null},
 {imagen:"img_Bichos/bee/bee-4.jpg", label:"abeja" , tensor: null},
@@ -65,7 +65,7 @@ let imagenes = [{ imagen: "img_Bichos/bee/bee-0.jpg", label: "abeja", tensor: nu
 {imagen:"img_Bichos/none/none-17.jpg", label:"nada", tensor: null},
 {imagen:"img_Bichos/none/none-18.jpg", label:"nada", tensor: null},
 {imagen:"img_Bichos/none/none-19.jpg", label:"nada", tensor: null}
-*/]
+]
 
 async function loadAndPreprocessImage(imageData) {
   const { imagen, label, tensor } = imageData;
