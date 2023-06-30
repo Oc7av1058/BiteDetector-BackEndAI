@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import * as qsy from 'tensorflow/tfjs-node';
+import {imagenes, inputHeight, inputWidth} from './listaImagenes';
 const epochs =10;
 const batchSize = 32 
 //crea el modelo
