@@ -2,12 +2,12 @@
   "name": "bitedetector-backendai",
   "version": "1.0.0",
   "description": "Esta es la parte de tensorflow del proyecto",
-  "main": "tensorflowProbando.js",
+  "main": "modeloProbando.js",
   "type": "module",
   "scripts": {
     "start": "node listaImagenes.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "model": "node modeloProbando.js"
+    "model": "node modeloProbando.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
     "clang-format": "^1.8.0",
